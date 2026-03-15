@@ -201,59 +201,34 @@ class ConcertScraperMongoDB:
             time.sleep(5)
             logger.info(f"Songkick {market}: Page chargée, recherche des éléments...")
 
-            # Essayer plusieurs sélecteurs
-            events_elements = driver.find_elements(By.CLASS_NAME, "event")
-            if not events_elements:
-                logger.info(f"Songkick {market}: .event not found, trying alternatives...")
-                events_elements = driver.find_elements(By.TAG_NAME, "li")
-            if not events_elements:
-                events_elements = driver.find_elements(By.CSS_SELECTOR, "div[data-artist-name]")
-            if not events_elements:
-                events_elements = driver.find_elements(By.CSS_SELECTOR, "[data-event-id]")
+            # Chercher les liens de concerts (stratégie robuste)
+            # Songkick utilise des URLs comme /concerts/ID-NAME
+            all_links = driver.find_elements(By.TAG_NAME, "a")
+            events_elements = []
 
-            # Dernière tentative - regarder le contenu de la page
-            body_text = driver.find_element(By.TAG_NAME, "body").text
-            logger.info(f"Songkick {market}: Body text length: {len(body_text)}, Keywords found - concert: {'concert' in body_text.lower()}, event: {'event' in body_text.lower()}")
+            for link in all_links:
+                href = link.get_attribute("href") or ""
+                if "/concerts/" in href and "-" in href.split("/concerts/")[-1]:
+                    events_elements.append(link)
 
-            logger.info(f"Songkick {market}: {len(events_elements)} événements trouvés avec sélecteurs testés")
+            logger.info(f"Songkick {market}: {len(events_elements)} liens de concerts trouvés avec pattern /concerts/ID-NAME")
 
             parsed_count = 0
-            failed_count = 0
-            for event_elem in events_elements:
+            for link_elem in events_elements:
                 try:
-                    # Essayer différentes façons d'extraire le titre
-                    title = None
-                    try:
-                        title = event_elem.find_element(By.CLASS_NAME, "event-title").text
-                    except:
-                        try:
-                            title = event_elem.find_element(By.TAG_NAME, "h3").text
-                        except:
-                            try:
-                                title = event_elem.find_element(By.TAG_NAME, "h2").text
-                            except:
-                                title = event_elem.text[:100] if event_elem.text else "Unknown"
+                    # event_elem est maintenant un lien direct
+                    title = link_elem.text.strip() if link_elem.text else "Unknown"
+                    url = link_elem.get_attribute("href") or ""
 
-                    date_elem = None
-                    try:
-                        date_elem = event_elem.find_element(By.CLASS_NAME, "event-date")
-                        date = date_elem.text
-                    except:
-                        date = "Date unknown"
+                    # Nettoyer le titre (peut contenir du texte extra)
+                    if title:
+                        title = title.split('\n')[0][:200]  # Première ligne, max 200 chars
 
-                    is_sold_out = "sold out" in event_elem.text.lower()
-
-                    link_elem = None
-                    url = ""
-                    try:
-                        link_elem = event_elem.find_element(By.TAG_NAME, "a")
-                        url = link_elem.get_attribute("href") if link_elem else ""
-                    except:
-                        pass
+                    is_sold_out = "sold out" in title.lower()
 
                     event = {
                         "title": title,
-                        "date": date,
+                        "date": "Date unknown",
                         "market": market,
                         "platform": "Songkick",
                         "url": url,
@@ -261,20 +236,17 @@ class ConcertScraperMongoDB:
                         "scraped_at": datetime.now().isoformat()
                     }
 
-                    # Garder TOUS les événements, pas seulement sold out
-                    events.append(event)
-                    parsed_count += 1
-                    if is_sold_out:
-                        logger.info(f"✓ {market} Songkick: {title} - SOLD OUT")
-                    else:
-                        logger.info(f"✓ {market} Songkick: {title} - Disponible")
+                    # Garder TOUS les événements
+                    if title and title != "Unknown" and len(title) > 3:
+                        events.append(event)
+                        parsed_count += 1
+                        logger.info(f"✓ {market} Songkick: {title}")
 
                 except Exception as e:
-                    failed_count += 1
-                    logger.warning(f"Erreur parsing événement Songkick: {e}")
+                    logger.debug(f"Erreur parsing lien Songkick: {e}")
                     continue
 
-            logger.info(f"Songkick {market}: Parsed {parsed_count}/{len(events_elements)} events")
+            logger.info(f"Songkick {market}: Traité {len(events_elements)} liens, {parsed_count} événements valides trouvés")
 
             driver.quit()
 
@@ -318,61 +290,36 @@ class ConcertScraperMongoDB:
             time.sleep(5)
             logger.info(f"Viagogo {market}: Page chargée, recherche des éléments...")
 
-            # Essayer plusieurs sélecteurs
-            events_elements = driver.find_elements(By.TAG_NAME, "li")
-            if not events_elements:
-                logger.info(f"Viagogo {market}: li not found, trying alternatives...")
-                events_elements = driver.find_elements(By.CLASS_NAME, "event-card")
-            if not events_elements:
-                events_elements = driver.find_elements(By.CSS_SELECTOR, "[data-eventid]")
-            if not events_elements:
-                events_elements = driver.find_elements(By.CSS_SELECTOR, ".card")
+            # Chercher les liens de concerts (stratégie robuste)
+            # Viagogo utilise des URLs comme /Concert-Tickets/Genre/Artist-Tickets
+            all_links = driver.find_elements(By.TAG_NAME, "a")
+            events_elements = []
 
-            # Dernière tentative - regarder le contenu de la page
-            body_text = driver.find_element(By.TAG_NAME, "body").text
-            logger.info(f"Viagogo {market}: Body text length: {len(body_text)}, Keywords found - concert: {'concert' in body_text.lower()}, ticket: {'ticket' in body_text.lower()}")
+            for link in all_links:
+                href = link.get_attribute("href") or ""
+                if "/Concert-Tickets/" in href:
+                    events_elements.append(link)
 
-            logger.info(f"Viagogo {market}: {len(events_elements)} événements trouvés avec sélecteurs testés")
+            logger.info(f"Viagogo {market}: {len(events_elements)} liens de concerts trouvés avec pattern /Concert-Tickets/")
 
             parsed_count = 0
-            failed_count = 0
-            for event_elem in events_elements:
+            for link_elem in events_elements:
                 try:
-                    # Essayer différentes façons d'extraire le titre
-                    title = None
-                    try:
-                        title = event_elem.find_element(By.CLASS_NAME, "event-name").text
-                    except:
-                        try:
-                            title = event_elem.find_element(By.TAG_NAME, "h3").text
-                        except:
-                            try:
-                                title = event_elem.find_element(By.TAG_NAME, "h2").text
-                            except:
-                                title = event_elem.text[:100] if event_elem.text else "Unknown"
+                    # event_elem est maintenant un lien direct
+                    title = link_elem.text.strip() if link_elem.text else "Unknown"
+                    url = link_elem.get_attribute("href") or ""
 
-                    date_elem = None
-                    try:
-                        date_elem = event_elem.find_element(By.CLASS_NAME, "event-date")
-                        date = date_elem.text
-                    except:
-                        date = "Date unknown"
+                    # Nettoyer le titre (peut contenir du texte extra)
+                    if title:
+                        title = title.split('\n')[0][:200]  # Première ligne, max 200 chars
 
-                    is_sold_out = "sold out" in event_elem.text.lower() or \
-                                 "ausverkauft" in event_elem.text.lower() or \
-                                 "épuisé" in event_elem.text.lower()
-
-                    link_elem = None
-                    url = ""
-                    try:
-                        link_elem = event_elem.find_element(By.TAG_NAME, "a")
-                        url = link_elem.get_attribute("href") if link_elem else ""
-                    except:
-                        pass
+                    is_sold_out = "sold out" in title.lower() or \
+                                 "ausverkauft" in title.lower() or \
+                                 "épuisé" in title.lower()
 
                     event = {
                         "title": title,
-                        "date": date,
+                        "date": "Date unknown",
                         "market": market,
                         "platform": "Viagogo",
                         "url": url,
@@ -380,20 +327,17 @@ class ConcertScraperMongoDB:
                         "scraped_at": datetime.now().isoformat()
                     }
 
-                    # Garder TOUS les événements, pas seulement sold out
-                    events.append(event)
-                    parsed_count += 1
-                    if is_sold_out:
-                        logger.info(f"✓ {market} Viagogo: {title} - SOLD OUT")
-                    else:
-                        logger.info(f"✓ {market} Viagogo: {title} - Disponible")
+                    # Garder TOUS les événements
+                    if title and title != "Unknown" and len(title) > 3:
+                        events.append(event)
+                        parsed_count += 1
+                        logger.info(f"✓ {market} Viagogo: {title}")
 
                 except Exception as e:
-                    failed_count += 1
-                    logger.warning(f"Erreur parsing événement Viagogo: {e}")
+                    logger.debug(f"Erreur parsing lien Viagogo: {e}")
                     continue
 
-            logger.info(f"Viagogo {market}: Parsed {parsed_count}/{len(events_elements)} events")
+            logger.info(f"Viagogo {market}: Traité {len(events_elements)} liens, {parsed_count} événements valides trouvés")
 
             driver.quit()
 
