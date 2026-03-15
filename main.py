@@ -274,6 +274,14 @@ def debug_selenium():
 def run_now():
     """Déclencher le scraping immédiatement"""
     global last_run, last_result
+    import io
+    import sys
+
+    # Capture logging output
+    log_stream = io.StringIO()
+    handler = logging.StreamHandler(log_stream)
+    handler.setFormatter(logging.Formatter('%(asctime)s - %(levelname)s - %(message)s'))
+    logger.addHandler(handler)
 
     try:
         logger.info("🚀 Scraping déclenché manuellement")
@@ -290,12 +298,26 @@ def run_now():
         last_run = datetime.now().isoformat()
         last_result = result
 
+        # Add logs to response
+        logs = log_stream.getvalue()
+        result['_logs'] = logs
+
+        logger.removeHandler(handler)
         return jsonify(result), 200
     except Exception as e:
         logger.error(f"❌ Erreur scraping: {e}", exc_info=True)
         import traceback
-        logger.error(f"Traceback: {traceback.format_exc()}")
-        return jsonify({"error": str(e)}), 500
+        error_trace = traceback.format_exc()
+        logger.error(f"Traceback: {error_trace}")
+
+        # Add logs and error details to response
+        logs = log_stream.getvalue()
+        logger.removeHandler(handler)
+        return jsonify({
+            "error": str(e),
+            "traceback": error_trace,
+            "_logs": logs
+        }), 500
 
 
 def scrape_job():
