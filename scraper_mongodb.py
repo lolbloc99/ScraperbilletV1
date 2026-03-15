@@ -305,11 +305,19 @@ class ConcertScraperMongoDB:
             parsed_count = 0
             for link_elem in events_elements:
                 try:
-                    # event_elem est maintenant un lien direct
-                    title = link_elem.text.strip() if link_elem.text else "Unknown"
                     url = link_elem.get_attribute("href") or ""
 
-                    # Nettoyer le titre (peut contenir du texte extra)
+                    # Essayer d'extraire le titre du texte du lien
+                    title = link_elem.text.strip() if link_elem.text else ""
+
+                    # Si pas de texte, extraire du URL (/Concert-Tickets/Genre/Artist-Tickets)
+                    if not title or title == "Unknown":
+                        parts = url.split("/Concert-Tickets/")
+                        if len(parts) > 1:
+                            artist_part = parts[1].split("/")[-1]  # Dernier segment
+                            title = artist_part.replace("-Tickets", "").replace("-", " ")
+
+                    # Nettoyer le titre
                     if title:
                         title = title.split('\n')[0][:200]  # Première ligne, max 200 chars
 
