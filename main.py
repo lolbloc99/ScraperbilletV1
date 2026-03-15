@@ -38,6 +38,11 @@ def logs():
     """Serve the logs page"""
     return render_template('logs.html')
 
+@app.route('/test', methods=['GET'])
+def test():
+    """Serve the test page"""
+    return render_template('test.html')
+
 @app.route('/health', methods=['GET'])
 def health():
     """Health check pour Railway"""

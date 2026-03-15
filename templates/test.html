@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test du Scraper</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        h1 {
+            color: white;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        .test-section {
+            background: white;
+            border-radius: 10px;
+            padding: 25px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            margin-bottom: 20px;
+        }
+        h2 {
+            color: #667eea;
+            margin-bottom: 15px;
+            font-size: 1.3em;
+        }
+        button {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1em;
+            font-weight: 600;
+            margin-right: 10px;
+            margin-bottom: 10px;
+            transition: all 0.3s ease;
+        }
+        button:hover {
+            background: #5568d3;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+        .output {
+            background: #1e1e1e;
+            color: #d4d4d4;
+            padding: 15px;
+            border-radius: 5px;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            max-height: 500px;
+            overflow-y: auto;
+            margin-top: 15px;
+            line-height: 1.6;
+        }
+        .success {
+            color: #6a9955;
+        }
+        .error {
+            color: #f48771;
+        }
+        .warning {
+            color: #dcdcaa;
+        }
+        .info {
+            color: #9cdcfe;
+        }
+        .loading {
+            text-align: center;
+            color: #667eea;
+        }
+        .spinner {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            animation: spin 1s linear infinite;
+            display: inline-block;
+            margin-right: 10px;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .status-box {
+            background: #f0f0f0;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 15px;
+            border-left: 4px solid #667eea;
+        }
+        .status-box strong {
+            display: block;
+            margin-bottom: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🧪 Test du Scraper Billet</h1>
+
+        <!-- Test 1: Health Check -->
+        <div class="test-section">
+            <h2>1️⃣ Vérifier la Santé du Service</h2>
+            <button onclick="testHealth()">🏥 Test Health Check</button>
+            <div id="healthOutput" class="output" style="display: none;"></div>
+        </div>
+
+        <!-- Test 2: Run Scraper -->
+        <div class="test-section">
+            <h2>2️⃣ Lancer le Scraper</h2>
+            <button onclick="runScraper()">🚀 Lancer le Scraper Maintenant</button>
+            <button onclick="clearOutput('scraperOutput')">🗑️ Effacer</button>
+            <div id="scraperOutput" class="output" style="display: none;"></div>
+        </div>
+
+        <!-- Test 3: Get Stats -->
+        <div class="test-section">
+            <h2>3️⃣ Voir les Statistiques</h2>
+            <button onclick="getStats()">📊 Charger les Stats</button>
+            <button onclick="clearOutput('statsOutput')">🗑️ Effacer</button>
+            <div id="statsOutput" class="output" style="display: none;"></div>
+        </div>
+
+        <!-- Test 4: Get Events -->
+        <div class="test-section">
+            <h2>4️⃣ Voir les Événements (24h)</h2>
+            <button onclick="getEvents()">📋 Charger les Événements</button>
+            <button onclick="clearOutput('eventsOutput')">🗑️ Effacer</button>
+            <div id="eventsOutput" class="output" style="display: none;"></div>
+        </div>
+
+        <!-- Test 5: Check MongoDB -->
+        <div class="test-section">
+            <h2>5️⃣ Diagnostic Détaillé</h2>
+            <div class="status-box">
+                <strong>Checklist de vérification:</strong>
+                ✓ MongoDB connecté - Vérifiez avec le test Stats<br>
+                ✓ Chromium installé - Vérifiez avec le test Scraper<br>
+                ✓ webdriver-manager fonctionne - Vérifiez les erreurs Scraper<br>
+                ✓ Sites Songkick/Viagogo accessibles - Vérifiez le Scraper
+            </div>
+            <button onclick="runDiagnostics()">🔍 Diagnostic Complet</button>
+            <div id="diagnosticsOutput" class="output" style="display: none;"></div>
+        </div>
+    </div>
+
+    <script>
+        function log(output, message, type = 'info') {
+            const timestamp = new Date().toLocaleTimeString('fr-FR');
+            let colorClass = type;
+            output.style.display = 'block';
+
+            let html = output.innerHTML;
+            if (html.includes('span class="loading"')) {
+                html = '';
+            }
+
+            output.innerHTML += `<div><span class="info">[${timestamp}]</span> <span class="${colorClass}">${message}</span></div>`;
+            output.scrollTop = output.scrollHeight;
+        }
+
+        function clearOutput(elementId) {
+            document.getElementById(elementId).innerHTML = '';
+            document.getElementById(elementId).style.display = 'none';
+        }
+
+        function testHealth() {
+            const output = document.getElementById('healthOutput');
+            output.innerHTML = '<div class="loading"><span class="spinner"></span>Vérification...</div>';
+            output.style.display = 'block';
+
+            fetch('/health')
+                .then(r => r.json())
+                .then(data => {
+                    output.innerHTML = '';
+                    log(output, '✓ Service est ONLINE', 'success');
+                    log(output, `Statut: ${data.status}`, 'info');
+                    log(output, `Dernier scraping: ${data.last_run || 'Jamais'}`, 'info');
+                    if (data.last_result) {
+                        log(output, JSON.stringify(data.last_result, null, 2), 'info');
+                    }
+                })
+                .catch(e => {
+                    output.innerHTML = '';
+                    log(output, `❌ ERREUR: ${e.message}`, 'error');
+                });
+        }
+
+        function runScraper() {
+            const output = document.getElementById('scraperOutput');
+            output.innerHTML = '<div class="loading"><span class="spinner"></span>Lancement du scraper...</div>';
+            output.style.display = 'block';
+
+            fetch('/run', { method: 'POST' })
+                .then(r => r.json())
+                .then(data => {
+                    output.innerHTML = '';
+                    if (data.success) {
+                        log(output, '✓ SCRAPING RÉUSSI!', 'success');
+                        log(output, `Total événements trouvés: ${data.total_events || 0}`, 'success');
+                        log(output, `Nouveaux événements enregistrés: ${data.new_events || 0}`, 'success');
+                        if (data.events && data.events.length > 0) {
+                            log(output, '📍 Événements trouvés:', 'success');
+                            data.events.forEach(e => {
+                                log(output, `  - ${e.market}: ${e.title} (${e.platform})`, 'info');
+                            });
+                        } else {
+                            log(output, '⚠️  Aucun événement SOLD OUT trouvé', 'warning');
+                            log(output, 'ℹ️  Note: Le scraper ne garde que les événements COMPLETS (sold out)', 'warning');
+                        }
+                    } else {
+                        log(output, `❌ ERREUR SCRAPING: ${data.error || 'Erreur inconnue'}`, 'error');
+                    }
+                    log(output, `Timestamp: ${data.timestamp}`, 'info');
+                })
+                .catch(e => {
+                    output.innerHTML = '';
+                    log(output, `❌ ERREUR RÉSEAU: ${e.message}`, 'error');
+                });
+        }
+
+        function getStats() {
+            const output = document.getElementById('statsOutput');
+            output.innerHTML = '<div class="loading"><span class="spinner"></span>Chargement...</div>';
+            output.style.display = 'block';
+
+            fetch('/stats')
+                .then(r => r.json())
+                .then(data => {
+                    output.innerHTML = '';
+                    log(output, '✓ Statistiques chargées', 'success');
+                    log(output, `Total événements en BD: ${data.total_events || 0}`, 'info');
+                    log(output, `Événements SOLD OUT: ${data.sold_out || 0}`, 'info');
+                    if (data.by_market) {
+                        log(output, 'Par marché:', 'info');
+                        Object.entries(data.by_market).forEach(([market, count]) => {
+                            log(output, `  ${market}: ${count} événements`, 'info');
+                        });
+                    }
+                    log(output, `Dernier update: ${data.last_update || 'N/A'}`, 'info');
+                })
+                .catch(e => {
+                    output.innerHTML = '';
+                    log(output, `❌ ERREUR: ${e.message}`, 'error');
+                });
+        }
+
+        function getEvents() {
+            const output = document.getElementById('eventsOutput');
+            output.innerHTML = '<div class="loading"><span class="spinner"></span>Chargement...</div>';
+            output.style.display = 'block';
+
+            fetch('/events')
+                .then(r => r.json())
+                .then(data => {
+                    output.innerHTML = '';
+                    log(output, `✓ ${data.count || 0} événements trouvés (24h)`, 'success');
+                    if (data.events && data.events.length > 0) {
+                        data.events.forEach((e, i) => {
+                            log(output, `${i+1}. ${e.title} - ${e.market} (${e.platform})`, 'info');
+                        });
+                    } else {
+                        log(output, 'Aucun événement dans les 24 dernières heures', 'warning');
+                    }
+                })
+                .catch(e => {
+                    output.innerHTML = '';
+                    log(output, `❌ ERREUR: ${e.message}`, 'error');
+                });
+        }
+
+        function runDiagnostics() {
+            const output = document.getElementById('diagnosticsOutput');
+            output.innerHTML = '';
+            output.style.display = 'block';
+
+            log(output, '🔍 Démarrage du diagnostic...', 'info');
+
+            // Test 1: Health
+            log(output, '1️⃣  Test Health Check...', 'info');
+            fetch('/health')
+                .then(r => r.json())
+                .then(() => {
+                    log(output, '✓ Service est online', 'success');
+
+                    // Test 2: Stats
+                    log(output, '2️⃣  Test MongoDB...', 'info');
+                    return fetch('/stats').then(r => r.json());
+                })
+                .then(data => {
+                    log(output, `✓ MongoDB connecté (${data.total_events || 0} événements en BD)`, 'success');
+
+                    // Test 3: Try Scraper
+                    log(output, '3️⃣  Test Scraper (Chromium + webdriver-manager)...', 'info');
+                    return fetch('/run', { method: 'POST' }).then(r => r.json());
+                })
+                .then(result => {
+                    if (result.success) {
+                        log(output, `✓ Scraper exécuté avec succès`, 'success');
+                        log(output, `  - Événements trouvés: ${result.total_events || 0}`, 'info');
+                        log(output, `  - Nouveaux enregistrés: ${result.new_events || 0}`, 'info');
+                    } else {
+                        log(output, `✗ Erreur lors du scraping:`, 'error');
+                        log(output, `  ${result.error}`, 'error');
+                    }
+
+                    log(output, '✅ Diagnostic terminé!', 'success');
+                })
+                .catch(e => {
+                    log(output, `❌ Erreur: ${e.message}`, 'error');
+                });
+        }
+
+        // Afficher les infos au chargement
+        window.addEventListener('DOMContentLoaded', () => {
+            testHealth();
+        });
+    </script>
+</body>
+</html>
