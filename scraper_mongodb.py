@@ -297,7 +297,15 @@ class ConcertScraperMongoDB:
 
             url = market_config['viagogo_url']
             logger.info(f"Accès à: {url}")
-            driver.get(url)
+
+            try:
+                driver.set_page_load_timeout(30)
+                driver.get(url)
+                logger.info(f"Viagogo {market}: Page loaded successfully")
+            except Exception as e:
+                logger.error(f"Viagogo {market}: TIMEOUT/ERROR loading page - {e}")
+                driver.quit()
+                return []
 
             # Attendre que la page se charge complètement (JavaScript)
             wait_time = 8
