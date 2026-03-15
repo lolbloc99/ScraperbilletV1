@@ -52,6 +52,16 @@ def health():
         "last_result": last_result
     }), 200
 
+@app.route('/version', methods=['GET'])
+def version():
+    """Get deployed version info"""
+    return jsonify({
+        "status": "ok",
+        "version": "2.1.0",
+        "updated_at": "2026-03-15T15:00:00Z",
+        "deployment_id": "a859d65"
+    }), 200
+
 @app.route('/stats', methods=['GET'])
 def stats():
     """Obtenir les statistiques"""
