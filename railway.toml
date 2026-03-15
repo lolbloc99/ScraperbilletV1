@@ -1,0 +1,33 @@
+[build]
+builder = "dockerfile"
+buildCommand = "pip install -r requirements.txt"
+
+[deploy]
+startCommand = "python3 main.py"
+restartPolicyType = "always"
+restartPolicyMaxRetries = 5
+
+[[services]]
+name = "api"
+serviceType = "web"
+dockerfile = "Dockerfile"
+port = 5000
+
+[[services]]
+name = "mongodb"
+serviceType = "database"
+image = "mongo:latest"
+port = 27017
+
+[healthcheck]
+type = "http"
+uri = "/health"
+interval = 30
+timeout = 10
+retries = 3
+startPeriod = 5
+
+[env]
+MONGODB_URI = "${{mongodb.MONGO_URI}}"
+PORT = "5000"
+ENVIRONMENT = "production"
