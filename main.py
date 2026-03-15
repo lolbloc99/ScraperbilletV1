@@ -77,6 +77,74 @@ def get_events():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
+@app.route('/debug', methods=['GET'])
+def debug_selenium():
+    """Endpoint pour déboguer Selenium sur Railway"""
+    from selenium import webdriver
+    from selenium.webdriver.common.by import By
+    from selenium.webdriver.chrome.options import Options
+    from selenium.webdriver.chrome.service import Service
+    from webdriver_manager.chrome import ChromeDriverManager
+    import time as time_module
+
+    debug_info = {}
+
+    try:
+        # Test Chrome initialization
+        logger.info("🔧 [DEBUG] Initializing Chrome...")
+        options = Options()
+        options.add_argument('--headless')
+        options.add_argument('--no-sandbox')
+        options.add_argument('--disable-dev-shm-usage')
+        options.add_argument('--disable-gpu')
+
+        try:
+            service = Service(ChromeDriverManager().install())
+            driver = webdriver.Chrome(service=service, options=options)
+            debug_info['chrome_status'] = "✓ Chrome initialized with webdriver-manager"
+        except Exception as e:
+            driver = webdriver.Chrome(options=options)
+            debug_info['chrome_status'] = f"Chrome initialized without service (fallback)"
+
+        # Test Songkick
+        logger.info("🔧 [DEBUG] Testing Songkick...")
+        driver.get("https://www.songkick.com/concerts")
+        time_module.sleep(8)
+
+        all_links = driver.find_elements(By.TAG_NAME, "a")
+        page_size = len(driver.page_source)
+
+        debug_info['songkick'] = {
+            'page_size': page_size,
+            'total_links': len(all_links),
+            'sample_links': [link.get_attribute("href")[:80] for link in all_links[:3]],
+            'concerts_pattern_found': sum(1 for link in all_links if "/concerts/" in (link.get_attribute("href") or ""))
+        }
+
+        # Test Viagogo
+        logger.info("🔧 [DEBUG] Testing Viagogo...")
+        driver.get("https://www.viagogo.com/")
+        time_module.sleep(8)
+
+        all_links = driver.find_elements(By.TAG_NAME, "a")
+        page_size = len(driver.page_source)
+
+        debug_info['viagogo'] = {
+            'page_size': page_size,
+            'total_links': len(all_links),
+            'sample_links': [link.get_attribute("href")[:80] for link in all_links[:3]],
+            'concert_tickets_pattern_found': sum(1 for link in all_links if "/Concert-Tickets/" in (link.get_attribute("href") or ""))
+        }
+
+        driver.quit()
+
+        return jsonify(debug_info), 200
+
+    except Exception as e:
+        logger.error(f"Debug endpoint error: {e}", exc_info=True)
+        return jsonify({"error": str(e)}), 500
+
+
 @app.route('/run', methods=['POST'])
 def run_now():
     """Déclencher le scraping immédiatement"""
