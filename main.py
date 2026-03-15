@@ -9,7 +9,7 @@ import logging
 from datetime import datetime, time
 from apscheduler.schedulers.background import BackgroundScheduler
 from apscheduler.triggers.cron import CronTrigger
-from flask import Flask, jsonify
+from flask import Flask, jsonify, render_template
 from scraper_mongodb import ConcertScraperMongoDB
 import json
 
@@ -26,7 +26,12 @@ last_result = None
 scheduler = None
 
 # Flask app pour Railway
-app = Flask(__name__)
+app = Flask(__name__, template_folder='templates')
+
+@app.route('/', methods=['GET'])
+def index():
+    """Serve the web interface"""
+    return render_template('index.html')
 
 @app.route('/health', methods=['GET'])
 def health():
