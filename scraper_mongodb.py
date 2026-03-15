@@ -179,9 +179,17 @@ class ConcertScraperMongoDB:
                 options.add_argument('--disable-dev-shm-usage')
                 options.add_argument('--disable-gpu')
 
-            # Configuration ChromeDriver avec webdriver-manager (Chrome officiel)
-            service = Service(ChromeDriverManager(driver_version="stable").install())
-            driver = webdriver.Chrome(service=service, options=options)
+            # Configuration ChromeDriver - webdriver-manager détecte la version
+            try:
+                service = Service(ChromeDriverManager().install())
+            except Exception as e:
+                logger.warning(f"WebDriver manager failed, trying without service: {e}")
+                service = None
+
+            if service:
+                driver = webdriver.Chrome(service=service, options=options)
+            else:
+                driver = webdriver.Chrome(options=options)
 
             url = f"https://www.songkick.com/metro_areas/{market_config['country_code']}"
             driver.get(url)
@@ -237,9 +245,17 @@ class ConcertScraperMongoDB:
                 options.add_argument('--disable-dev-shm-usage')
                 options.add_argument('--disable-gpu')
 
-            # Configuration ChromeDriver avec webdriver-manager (Chrome officiel)
-            service = Service(ChromeDriverManager(driver_version="stable").install())
-            driver = webdriver.Chrome(service=service, options=options)
+            # Configuration ChromeDriver - webdriver-manager détecte la version
+            try:
+                service = Service(ChromeDriverManager().install())
+            except Exception as e:
+                logger.warning(f"WebDriver manager failed, trying without service: {e}")
+                service = None
+
+            if service:
+                driver = webdriver.Chrome(service=service, options=options)
+            else:
+                driver = webdriver.Chrome(options=options)
 
             url = market_config['viagogo_url']
             driver.get(url)
