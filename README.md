@@ -116,9 +116,47 @@ RÉSUMÉ:
 }
 ```
 
+## 🌐 Déploiement
+
+### Options de déploiement
+
+1. **Mode Local JSON** (défaut)
+   - Fichiers JSON locaux
+   - Idéal pour tester
+   - `python3 scraper.py`
+
+2. **Mode MongoDB Local**
+   - Base de données MongoDB en local
+   - `python3 scraper_mongodb.py`
+   - Nécessite MongoDB installé
+
+3. **Mode Cloud - Railway + MongoDB Atlas** ⭐ (RECOMMANDÉ)
+   - Déploiement 24/7 sur Railway
+   - Base de données MongoDB Atlas (cloud)
+   - Scraping automatique quotidien
+   - API REST accessible
+   - **Gratuit!** 🎉
+
+👉 **[Guide complet Railway + MongoDB](./RAILWAY_DEPLOYMENT.md)**
+
+👉 **[Comparaison des options](./DEPLOYMENT_OPTIONS.md)**
+
+## 📁 Fichiers de déploiement
+
+```
+├── scraper.py                 # Scraper local (JSON)
+├── scraper_mongodb.py         # Scraper MongoDB
+├── main.py                    # Point d'entrée Railway (avec scheduler)
+├── Dockerfile                 # Pour Railway
+├── railway.json               # Config Railway
+├── .env.example               # Variables d'environnement
+├── RAILWAY_DEPLOYMENT.md      # Guide de déploiement
+└── DEPLOYMENT_OPTIONS.md      # Comparaison des modes
+```
+
 ## 🔗 Prochaine étape: Telegram
 
-Une fois le scraper testé, on intègrera la notification Telegram avec:
+Une fois le scraper déployé (local ou cloud), on intègrera la notification Telegram avec:
 - Alerte quotidienne à 12h
 - Résumé de tous les sold out trouvés
 - Lien direct vers les événements
