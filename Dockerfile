@@ -2,12 +2,10 @@ FROM python:3.11-slim
 
 WORKDIR /app
 
-# Installer Chromium et dépendances pour Selenium
+# Installer Chromium pour Selenium
 RUN apt-get update && apt-get install -y \
     curl \
     chromium \
-    libgconf-2-4 \
-    libxss1 \
     && rm -rf /var/lib/apt/lists/*
 
 # Copier requirements
