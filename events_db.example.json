@@ -1,0 +1,68 @@
+{
+  "events": {
+    "a3f8d9c2b1e4f6a7c9d2e1f4": {
+      "title": "Coldplay - Music of the Spheres World Tour",
+      "date": "20 May 2026",
+      "market": "UK",
+      "platform": "Songkick",
+      "url": "https://www.songkick.com/concerts/coldplay-london-o2",
+      "sold_out": true,
+      "scraped_at": "2026-03-15T12:00:00"
+    },
+    "b4e9f2c3d5a1b8e7f6c9d2e1": {
+      "title": "Daft Punk - Interstella 5555 Live",
+      "date": "15 June 2026",
+      "market": "France",
+      "platform": "Viagogo",
+      "url": "https://www.viagogo.fr/concerts/daft-punk-paris",
+      "sold_out": true,
+      "scraped_at": "2026-03-15T12:00:00"
+    },
+    "c5f0g3d4e6b2c9f8a7d3e2f5": {
+      "title": "Rammstein - Mutter Tour",
+      "date": "10 July 2026",
+      "market": "Danemark",
+      "platform": "Songkick",
+      "url": "https://www.songkick.com/concerts/rammstein-copenhagen",
+      "sold_out": true,
+      "scraped_at": "2026-03-15T12:00:00"
+    },
+    "d6g1h4e5f7c3d0g9b8e4f3g6": {
+      "title": "The Weeknd - After Hours til Dawn",
+      "date": "25 August 2026",
+      "market": "Suède",
+      "platform": "Viagogo",
+      "url": "https://www.viagogo.com/concerts/the-weeknd-stockholm",
+      "sold_out": true,
+      "scraped_at": "2026-03-15T12:00:00"
+    },
+    "e7h2i5f6g8d4e1h0c9f5g4h7": {
+      "title": "Maneskin - Loud Kids on Tour",
+      "date": "05 September 2026",
+      "market": "Italie",
+      "platform": "Songkick",
+      "url": "https://www.songkick.com/concerts/maneskin-rome",
+      "sold_out": true,
+      "scraped_at": "2026-03-15T12:00:00"
+    },
+    "f8i3j6g7h9e5f2i1d0g6h5i8": {
+      "title": "Rosalía - Motomami Tour",
+      "date": "12 October 2026",
+      "market": "Espagne",
+      "platform": "Viagogo",
+      "url": "https://www.viagogo.es/conciertos/rosalia-barcelona",
+      "sold_out": true,
+      "scraped_at": "2026-03-15T12:00:00"
+    },
+    "g9j4k7h8i0f6g3j2e1h7i6j9": {
+      "title": "Arsenal vs Manchester United",
+      "date": "08 April 2026",
+      "market": "UK",
+      "platform": "Viagogo",
+      "url": "https://www.viagogo.com/events/sports/arsenal-vs-manchester-united",
+      "sold_out": true,
+      "scraped_at": "2026-03-15T12:00:00"
+    }
+  },
+  "last_updated": "2026-03-15T12:00:00"
+}

@@ -1,0 +1,50 @@
+{
+  "markets": {
+    "UK": {
+      "country_code": "GB",
+      "songkick_url": "https://www.songkick.com/concerts",
+      "viagogo_url": "https://www.viagogo.com/concerts",
+      "languages": ["en"]
+    },
+    "France": {
+      "country_code": "FR",
+      "songkick_url": "https://www.songkick.com/concerts",
+      "viagogo_url": "https://www.viagogo.fr/concerts",
+      "languages": ["fr"]
+    },
+    "Danemark": {
+      "country_code": "DK",
+      "songkick_url": "https://www.songkick.com/concerts",
+      "viagogo_url": "https://www.viagogo.com/concerts",
+      "languages": ["da"]
+    },
+    "Suède": {
+      "country_code": "SE",
+      "songkick_url": "https://www.songkick.com/concerts",
+      "viagogo_url": "https://www.viagogo.com/concerts",
+      "languages": ["sv"]
+    },
+    "Italie": {
+      "country_code": "IT",
+      "songkick_url": "https://www.songkick.com/concerts",
+      "viagogo_url": "https://www.viagogo.it/concerti",
+      "languages": ["it"]
+    },
+    "Espagne": {
+      "country_code": "ES",
+      "songkick_url": "https://www.songkick.com/concerts",
+      "viagogo_url": "https://www.viagogo.es/entradas-conciertos",
+      "languages": ["es"]
+    }
+  },
+  "scrape_settings": {
+    "timeout": 30,
+    "retry_attempts": 3,
+    "delay_between_requests": 2,
+    "headless": true,
+    "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"
+  },
+  "notification_time": "12:00",
+  "database_file": "events_db.json",
+  "log_file": "scraper.log"
+}
