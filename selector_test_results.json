@@ -1,0 +1,107 @@
+{
+  "songkick": {
+    ".event-listing": {
+      "description": "Event listing (original)",
+      "count": 0,
+      "status": "\u2717 NOT FOUND"
+    },
+    ".event": {
+      "description": "Event class",
+      "count": 0,
+      "status": "\u2717 NOT FOUND"
+    },
+    "[data-eventid]": {
+      "description": "Data eventid attribute",
+      "count": 0,
+      "status": "\u2717 NOT FOUND"
+    },
+    "div[class*='event']": {
+      "description": "Div with event in class",
+      "count": 0,
+      "status": "\u2717 NOT FOUND"
+    },
+    ".event-card": {
+      "description": "Event card",
+      "count": 0,
+      "status": "\u2717 NOT FOUND"
+    },
+    "article": {
+      "description": "Article tag",
+      "count": 0,
+      "status": "\u2717 NOT FOUND"
+    },
+    "li[data-event-id]": {
+      "description": "Li with data-event-id",
+      "count": 0,
+      "status": "\u2717 NOT FOUND"
+    },
+    ".concerts-list-item": {
+      "description": "Concerts list item",
+      "count": 0,
+      "status": "\u2717 NOT FOUND"
+    },
+    "[data-testid*='event']": {
+      "description": "Data testid with event",
+      "count": 0,
+      "status": "\u2717 NOT FOUND"
+    },
+    "div.eventListItem": {
+      "description": "Event list item",
+      "count": 0,
+      "status": "\u2717 NOT FOUND"
+    }
+  },
+  "viagogo": {
+    ".event-card": {
+      "description": "Event card (original)",
+      "count": 0,
+      "status": "\u2717 NOT FOUND"
+    },
+    ".card": {
+      "description": "Card class",
+      "count": 0,
+      "status": "\u2717 NOT FOUND"
+    },
+    "[data-eventid]": {
+      "description": "Data eventid attribute",
+      "count": 0,
+      "status": "\u2717 NOT FOUND"
+    },
+    "div[class*='event']": {
+      "description": "Div with event in class",
+      "count": 0,
+      "status": "\u2717 NOT FOUND"
+    },
+    ".event": {
+      "description": "Event class",
+      "count": 0,
+      "status": "\u2717 NOT FOUND"
+    },
+    ".event-item": {
+      "description": "Event item",
+      "count": 0,
+      "status": "\u2717 NOT FOUND"
+    },
+    "article": {
+      "description": "Article tag",
+      "count": 0,
+      "status": "\u2717 NOT FOUND"
+    },
+    ".concert": {
+      "description": "Concert class",
+      "count": 0,
+      "status": "\u2717 NOT FOUND"
+    },
+    ".show-card": {
+      "description": "Show card",
+      "count": 0,
+      "status": "\u2717 NOT FOUND"
+    },
+    "[data-testid*='event']": {
+      "description": "Data testid with event",
+      "count": 0,
+      "status": "\u2717 NOT FOUND"
+    }
+  },
+  "timestamp": 1773575139.678707
+}
