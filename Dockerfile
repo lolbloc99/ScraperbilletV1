@@ -34,5 +34,8 @@ HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
 # Exposer le port
 EXPOSE 5000
 
+# Build timestamp to force rebuild
+RUN echo "Build: 2026-03-15T15:10:00Z"
+
 # Démarrer l'app
 CMD ["python3", "main.py"]
