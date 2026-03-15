@@ -5,8 +5,7 @@ WORKDIR /app
 # Installer les dépendances système pour Chromium et Selenium
 RUN apt-get update && apt-get install -y \
     curl \
-    chromium-browser \
-    chromium-driver \
+    chromium \
     && rm -rf /var/lib/apt/lists/*
 
 # Copier requirements
