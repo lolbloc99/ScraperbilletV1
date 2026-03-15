@@ -217,6 +217,16 @@ class ConcertScraperMongoDB:
             # Chercher les liens de concerts (stratégie robuste)
             # Songkick utilise des URLs comme /concerts/ID-NAME
             all_links = driver.find_elements(By.TAG_NAME, "a")
+            logger.info(f"Songkick {market}: {len(all_links)} total <a> tags trouvés")
+
+            # DEBUG: Montrer les premiers liens
+            if len(all_links) > 0:
+                sample_links = []
+                for i, link in enumerate(all_links[:5]):
+                    href = link.get_attribute("href") or ""
+                    sample_links.append(href[:80])
+                logger.info(f"Songkick {market}: Premier lien: {sample_links[0] if sample_links else 'N/A'}")
+
             events_elements = []
 
             for link in all_links:
@@ -324,6 +334,16 @@ class ConcertScraperMongoDB:
             # Chercher les liens de concerts (stratégie robuste)
             # Viagogo utilise des URLs comme /Concert-Tickets/Genre/Artist-Tickets
             all_links = driver.find_elements(By.TAG_NAME, "a")
+            logger.info(f"Viagogo {market}: {len(all_links)} total <a> tags trouvés")
+
+            # DEBUG: Montrer les premiers liens
+            if len(all_links) > 0:
+                sample_links = []
+                for i, link in enumerate(all_links[:5]):
+                    href = link.get_attribute("href") or ""
+                    sample_links.append(href[:80])
+                logger.info(f"Viagogo {market}: Premier lien: {sample_links[0] if sample_links else 'N/A'}")
+
             events_elements = []
 
             for link in all_links:
