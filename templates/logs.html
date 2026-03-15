@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Logs du Scraper</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Courier New', monospace;
+            background: #1e1e1e;
+            color: #d4d4d4;
+            padding: 20px;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        h1 {
+            color: #667eea;
+            margin-bottom: 20px;
+        }
+        .logs-container {
+            background: #252526;
+            border: 1px solid #3e3e42;
+            border-radius: 5px;
+            padding: 15px;
+            max-height: 600px;
+            overflow-y: auto;
+            font-size: 12px;
+            line-height: 1.6;
+        }
+        .log-line {
+            padding: 5px 0;
+            border-bottom: 1px solid #3e3e42;
+        }
+        .log-line:last-child {
+            border-bottom: none;
+        }
+        .log-time {
+            color: #858585;
+        }
+        .log-info {
+            color: #6a9955;
+        }
+        .log-error {
+            color: #f48771;
+        }
+        .log-warning {
+            color: #dcdcaa;
+        }
+        .log-debug {
+            color: #9cdcfe;
+        }
+        button {
+            margin-top: 20px;
+            padding: 10px 20px;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        button:hover {
+            background: #5568d3;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>📋 Historique des Logs du Scraper</h1>
+        <div id="statusInfo" style="background: #252526; padding: 15px; border-radius: 5px; margin-bottom: 20px; border-left: 4px solid #667eea;">
+            <p><strong>Dernier scraping:</strong> <span id="lastRun">--</span></p>
+            <p><strong>Statut:</strong> <span id="status">Chargement...</span></p>
+            <p><strong>Événements trouvés (24h):</strong> <span id="eventCount">--</span></p>
+        </div>
+        <div class="logs-container" id="logsContainer">
+            <div style="text-align: center; color: #858585; padding: 20px;">
+                Chargement des logs...
+            </div>
+        </div>
+        <button onclick="loadLogs()">🔄 Rafraîchir les Logs</button>
+        <button onclick="runScraperNow()">🚀 Lancer le Scraper Maintenant</button>
+    </div>
+
+    <script>
+        function loadLogs() {
+            // Récupérer les informations du health endpoint
+            fetch('/health')
+                .then(r => r.json())
+                .then(data => {
+                    document.getElementById('lastRun').textContent = data.last_run ?
+                        new Date(data.last_run).toLocaleString('fr-FR') : 'Jamais';
+                    document.getElementById('status').textContent = 'Online ✓';
+
+                    // Afficher les résultats du dernier scraping
+                    if (data.last_result) {
+                        const result = data.last_result;
+                        const eventCount = result.new_events ? result.new_events.length : 0;
+                        document.getElementById('eventCount').textContent = eventCount;
+
+                        // Afficher les logs
+                        let logsHTML = '';
+                        const timestamp = new Date().toLocaleTimeString('fr-FR');
+
+                        logsHTML += `<div class="log-line"><span class="log-time">[${timestamp}]</span> <span class="log-info">✓ Dernier scraping chargé</span></div>`;
+
+                        if (result.success) {
+                            logsHTML += `<div class="log-line"><span class="log-time">[${timestamp}]</span> <span class="log-info">✓ Scraping réussi: ${result.total_events || 0} événements trouvés au total</span></div>`;
+                            logsHTML += `<div class="log-line"><span class="log-time">[${timestamp}]</span> <span class="log-info">✓ Nouveaux événements enregistrés: ${eventCount}</span></div>`;
+
+                            if (result.events && result.events.length > 0) {
+                                result.events.forEach(event => {
+                                    logsHTML += `<div class="log-line"><span class="log-time">[${timestamp}]</span> <span class="log-info">✨ ${event.market || 'N/A'} - ${event.title || 'N/A'}</span></div>`;
+                                });
+                            } else {
+                                logsHTML += `<div class="log-line"><span class="log-time">[${timestamp}]</span> <span class="log-warning">⚠️ Aucun événement COMPLET/SOLD OUT trouvé</span></div>`;
+                                logsHTML += `<div class="log-line"><span class="log-debug">ℹ️ Note: Le scraper ne garde que les événements avec "sold out"</span></div>`;
+                            }
+                        } else if (result.error) {
+                            logsHTML += `<div class="log-line"><span class="log-time">[${timestamp}]</span> <span class="log-error">❌ Erreur: ${result.error}</span></div>`;
+                        }
+
+                        document.getElementById('logsContainer').innerHTML = logsHTML;
+                    }
+                })
+                .catch(e => {
+                    document.getElementById('logsContainer').innerHTML =
+                        `<div style="color: #f48771;">❌ Erreur de connexion: ${e.message}</div>`;
+                });
+        }
+
+        function runScraperNow() {
+            document.getElementById('logsContainer').innerHTML =
+                `<div style="text-align: center; color: #dcdcaa; padding: 20px;">⏳ Lancement du scraper...</div>`;
+
+            fetch('/run', { method: 'POST' })
+                .then(r => r.json())
+                .then(data => {
+                    setTimeout(loadLogs, 2000);
+                })
+                .catch(e => {
+                    document.getElementById('logsContainer').innerHTML =
+                        `<div style="color: #f48771;">❌ Erreur: ${e.message}</div>`;
+                });
+        }
+
+        // Charger les logs au démarrage
+        window.addEventListener('DOMContentLoaded', loadLogs);
+    </script>
+</body>
+</html>

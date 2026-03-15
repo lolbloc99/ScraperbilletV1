@@ -33,6 +33,11 @@ def index():
     """Serve the web interface"""
     return render_template('index.html')
 
+@app.route('/logs', methods=['GET'])
+def logs():
+    """Serve the logs page"""
+    return render_template('logs.html')
+
 @app.route('/health', methods=['GET'])
 def health():
     """Health check pour Railway"""
