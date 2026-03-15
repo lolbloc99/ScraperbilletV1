@@ -176,6 +176,9 @@ class ConcertScraperMongoDB:
                 options.add_argument('--disable-dev-shm-usage')
                 options.add_argument('--disable-gpu')
 
+            # Configuration pour Chromium en conteneur
+            options.binary_location = '/usr/bin/chromium-browser'
+
             driver = webdriver.Chrome(options=options)
 
             url = f"https://www.songkick.com/metro_areas/{market_config['country_code']}"
@@ -231,6 +234,9 @@ class ConcertScraperMongoDB:
                 options.add_argument('--no-sandbox')
                 options.add_argument('--disable-dev-shm-usage')
                 options.add_argument('--disable-gpu')
+
+            # Configuration pour Chromium en conteneur
+            options.binary_location = '/usr/bin/chromium-browser'
 
             driver = webdriver.Chrome(options=options)
 

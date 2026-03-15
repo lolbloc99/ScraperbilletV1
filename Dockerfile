@@ -2,15 +2,17 @@ FROM python:3.11-slim
 
 WORKDIR /app
 
-# Installer uniquement ce qui est nécessaire
+# Installer les dépendances système pour Chromium et Selenium
 RUN apt-get update && apt-get install -y \
     curl \
+    chromium-browser \
+    chromium-driver \
     && rm -rf /var/lib/apt/lists/*
 
 # Copier requirements
 COPY requirements.txt .
 
-# Installer les dépendances Python (sans selenium pour le test)
+# Installer les dépendances Python
 RUN pip install --no-cache-dir -r requirements.txt
 
 # Copier le code
