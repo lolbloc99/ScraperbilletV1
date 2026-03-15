@@ -167,70 +167,35 @@ class ConcertScraperMongoDB:
         self.new_events = []
 
     def scrape_songkick(self, market: str, market_config: Dict) -> List[Dict]:
-        """Scraper Songkick pour un marché donné"""
+        """Scraper Songkick pour un marché donné - utilise requests HTTP"""
         logger.info(f"Scraping Songkick pour {market}...")
         events = []
 
         try:
-            options = Options()
-            if self.config['scrape_settings']['headless']:
-                options.add_argument('--headless')
-                options.add_argument('--no-sandbox')
-                options.add_argument('--disable-dev-shm-usage')
-                options.add_argument('--disable-gpu')
-
-            options.add_argument('user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36')
-
-            # Configuration ChromeDriver
-            driver = None
-            try:
-                # Essayer avec webdriver-manager
-                service = Service(ChromeDriverManager().install())
-                driver = webdriver.Chrome(service=service, options=options)
-                logger.info(f"✓ Chrome initialized with webdriver-manager")
-            except Exception as e:
-                logger.warning(f"WebDriver manager failed: {e}")
-                try:
-                    # Essayer sans service (utilise Chrome depuis le PATH ou env var)
-                    driver = webdriver.Chrome(options=options)
-                    logger.info(f"✓ Chrome initialized without service (using PATH)")
-                except Exception as e2:
-                    logger.error(f"Failed to initialize Chrome at all: {e2}")
-                    raise
-
-            if not driver:
-                raise Exception("Failed to initialize Chrome WebDriver")
+            from bs4 import BeautifulSoup
 
             url = market_config['songkick_url']
             logger.info(f"Accès à: {url}")
-            driver.get(url)
 
-            # Attendre que la page se charge complètement (JavaScript)
-            wait_time = 8
-            logger.info(f"Songkick {market}: Attente de {wait_time}s pour le chargement JS...")
-            time.sleep(wait_time)
+            headers = {
+                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
+            }
 
-            # Vérifier le chargement
-            page_size = len(driver.page_source)
-            logger.info(f"Songkick {market}: Page chargée ({page_size} chars), recherche des éléments...")
+            response = requests.get(url, headers=headers, timeout=15)
+            response.raise_for_status()
 
-            # Chercher les liens de concerts (stratégie robuste)
-            # Songkick utilise des URLs comme /concerts/ID-NAME
-            all_links = driver.find_elements(By.TAG_NAME, "a")
+            page_size = len(response.text)
+            logger.info(f"Songkick {market}: Page chargée ({page_size} chars)")
+
+            # Parse HTML
+            soup = BeautifulSoup(response.text, 'html.parser')
+            all_links = soup.find_all('a', href=True)
             logger.info(f"Songkick {market}: {len(all_links)} total <a> tags trouvés")
 
-            # DEBUG: Montrer les premiers liens
-            if len(all_links) > 0:
-                sample_links = []
-                for i, link in enumerate(all_links[:5]):
-                    href = link.get_attribute("href") or ""
-                    sample_links.append(href[:80])
-                logger.info(f"Songkick {market}: Premier lien: {sample_links[0] if sample_links else 'N/A'}")
-
+            # Filter concert links
             events_elements = []
-
             for link in all_links:
-                href = link.get_attribute("href") or ""
+                href = link.get('href', '')
                 if "/concerts/" in href and "-" in href.split("/concerts/")[-1]:
                     events_elements.append(link)
 
@@ -239,13 +204,12 @@ class ConcertScraperMongoDB:
             parsed_count = 0
             for link_idx, link_elem in enumerate(events_elements):
                 try:
-                    # event_elem est maintenant un lien direct
-                    title = link_elem.text.strip() if link_elem.text else "Unknown"
-                    url = link_elem.get_attribute("href") or ""
+                    title = link_elem.get_text(strip=True) if link_elem.get_text(strip=True) else "Unknown"
+                    url = link_elem.get('href', '')
 
-                    # Nettoyer le titre (peut contenir du texte extra)
+                    # Nettoyer le titre
                     if title:
-                        title = title.split('\n')[0][:200]  # Première ligne, max 200 chars
+                        title = title.split('\n')[0][:200]
 
                     is_sold_out = "sold out" in title.lower()
 
@@ -265,18 +229,15 @@ class ConcertScraperMongoDB:
                         parsed_count += 1
                         logger.info(f"✓ {market} Songkick: {title}")
                     else:
-                        # Log why this link was skipped
-                        if link_idx < 3:  # Only log first few
-                            logger.warning(f"Skipped link [{link_idx}]: title='{title}' (len={len(title)}) url={url[:100]}")
+                        if link_idx < 3:
+                            logger.warning(f"Skipped link [{link_idx}]: title='{title}' (len={len(title)})")
 
                 except Exception as e:
-                    if link_idx < 3:  # Only log first few errors
+                    if link_idx < 3:
                         logger.warning(f"Erreur parsing lien Songkick [{link_idx}]: {e}")
                     continue
 
             logger.info(f"Songkick {market}: Traité {len(events_elements)} liens, {parsed_count} événements valides trouvés")
-
-            driver.quit()
 
         except Exception as e:
             logger.error(f"Erreur scraping Songkick {market}: {e}")
