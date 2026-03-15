@@ -77,6 +77,36 @@ def get_events():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
+@app.route('/test-http', methods=['GET'])
+def test_http():
+    """Test HTTP requests without Selenium"""
+    import requests
+
+    result = {}
+
+    try:
+        # Test Songkick
+        resp = requests.get("https://www.songkick.com/concerts", timeout=10)
+        result['songkick_status'] = resp.status_code
+        result['songkick_size'] = len(resp.text)
+        result['songkick_has_concerts'] = "/concerts/" in resp.text
+        result['songkick_links_count'] = resp.text.count("<a ")
+    except Exception as e:
+        result['songkick_error'] = str(e)
+
+    try:
+        # Test Viagogo
+        resp = requests.get("https://www.viagogo.com/", timeout=10)
+        result['viagogo_status'] = resp.status_code
+        result['viagogo_size'] = len(resp.text)
+        result['viagogo_has_concerts'] = "/Concert-Tickets/" in resp.text
+        result['viagogo_links_count'] = resp.text.count("<a ")
+    except Exception as e:
+        result['viagogo_error'] = str(e)
+
+    return jsonify(result), 200
+
+
 @app.route('/debug', methods=['GET'])
 def debug_selenium():
     """Endpoint pour déboguer Selenium sur Railway"""
