@@ -187,11 +187,21 @@ class ConcertScraperMongoDB:
                 'Upgrade-Insecure-Requests': '1'
             }
 
-            response = requests.get(url, headers=headers, timeout=15)
-            response.raise_for_status()
+            try:
+                response = requests.get(url, headers=headers, timeout=25)
+                response.raise_for_status()
+            except requests.Timeout as e:
+                logger.error(f"Songkick {market}: TIMEOUT après 25 secondes - {e}")
+                return []
+            except requests.ConnectionError as e:
+                logger.error(f"Songkick {market}: CONNECTION ERROR - {e}")
+                return []
+            except Exception as e:
+                logger.error(f"Songkick {market}: HTTP ERROR ({type(e).__name__}): {e}")
+                return []
 
             page_size = len(response.text)
-            logger.info(f"Songkick {market}: Page chargée ({page_size} chars)")
+            logger.info(f"Songkick {market}: Page chargée ({page_size} chars, status {response.status_code})")
 
             # Parse HTML
             soup = BeautifulSoup(response.text, 'html.parser')
