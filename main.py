@@ -341,49 +341,56 @@ def debug_selenium():
 def run_now():
     """Déclencher le scraping immédiatement"""
     global last_run, last_result
-    import io
-    import sys
 
-    # Capture logging output
-    log_stream = io.StringIO()
-    handler = logging.StreamHandler(log_stream)
-    handler.setFormatter(logging.Formatter('%(asctime)s - %(levelname)s - %(message)s'))
-    logger.addHandler(handler)
+    # Store all output messages
+    messages = []
+    def log_msg(msg):
+        messages.append(msg)
+        logger.info(msg)
 
     try:
-        logger.info("🚀 Scraping déclenché manuellement")
-        logger.info(f"   MongoDB URI: {os.getenv('MONGODB_URI', 'NOT SET')[:50]}...")
+        log_msg("🚀 Scraping lancé")
 
-        scraper = ConcertScraperMongoDB()
-        logger.info(f"✓ Scraper créé avec succès")
+        # Test MongoDB connection
+        try:
+            scraper = ConcertScraperMongoDB()
+            log_msg("✓ Scraper créé")
+        except Exception as e:
+            log_msg(f"✗ Erreur création scraper: {e}")
+            return jsonify({
+                "success": False,
+                "error": f"Scraper creation failed: {e}",
+                "messages": messages
+            }), 500
 
-        result = scraper.execute()
-        logger.info(f"✓ Scraping exécuté: {result.get('total_events', '?')} événements")
+        try:
+            # Run the scrape
+            result = scraper.execute()
+            log_msg(f"✓ Scraping exécuté: {result.get('total_events', 0)} événements trouvés")
+        except Exception as e:
+            log_msg(f"✗ Erreur execution scraper: {e}")
+            import traceback
+            log_msg(traceback.format_exc())
+            result = {"success": False, "error": str(e)}
 
         scraper.close()
 
         last_run = datetime.now().isoformat()
         last_result = result
 
-        # Add logs to response
-        logs = log_stream.getvalue()
-        result['_logs'] = logs
+        # Add messages to result
+        result['_messages'] = messages
 
-        logger.removeHandler(handler)
         return jsonify(result), 200
-    except Exception as e:
-        logger.error(f"❌ Erreur scraping: {e}", exc_info=True)
-        import traceback
-        error_trace = traceback.format_exc()
-        logger.error(f"Traceback: {error_trace}")
 
-        # Add logs and error details to response
-        logs = log_stream.getvalue()
-        logger.removeHandler(handler)
+    except Exception as e:
+        log_msg(f"❌ Erreur globale: {e}")
+        import traceback
+        log_msg(traceback.format_exc())
         return jsonify({
+            "success": False,
             "error": str(e),
-            "traceback": error_trace,
-            "_logs": logs
+            "_messages": messages
         }), 500
 
 
