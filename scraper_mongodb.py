@@ -329,9 +329,12 @@ class ConcertScraperMongoDB:
                         "scraped_at": datetime.now().isoformat()
                     }
 
+                    # Garder TOUS les événements, pas seulement sold out
+                    events.append(event)
                     if is_sold_out:
-                        events.append(event)
                         logger.info(f"✓ {market} Viagogo: {title} - SOLD OUT")
+                    else:
+                        logger.info(f"✓ {market} Viagogo: {title} - Disponible")
 
                 except Exception as e:
                     logger.debug(f"Erreur parsing événement Viagogo: {e}")
