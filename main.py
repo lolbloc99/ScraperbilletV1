@@ -62,6 +62,63 @@ def version():
         "deployment_id": "a859d65"
     }), 200
 
+@app.route('/test-songkick-raw', methods=['GET'])
+def test_songkick_raw():
+    """Raw test of Songkick HTTP request"""
+    import requests
+    from bs4 import BeautifulSoup
+
+    result = {
+        "test": "songkick_raw",
+        "step": 0
+    }
+
+    try:
+        result["step"] = 1
+        url = "https://www.songkick.com/concerts"
+        headers = {
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+            'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
+            'Accept-Language': 'en-US,en;q=0.5',
+            'Accept-Encoding': 'gzip, deflate',
+            'Connection': 'keep-alive',
+            'Referer': 'https://www.songkick.com/',
+            'Upgrade-Insecure-Requests': '1'
+        }
+
+        result["step"] = 2
+        response = requests.get(url, headers=headers, timeout=15)
+        result["status_code"] = response.status_code
+        result["page_size"] = len(response.text)
+
+        result["step"] = 3
+        soup = BeautifulSoup(response.text, 'html.parser')
+        all_links = soup.find_all('a', href=True)
+        result["total_links"] = len(all_links)
+
+        result["step"] = 4
+        concert_links = []
+        for link in all_links:
+            href = link.get('href', '')
+            if "/concerts/" in href and "-" in href.split("/concerts/")[-1]:
+                concert_links.append({
+                    "href": href[:100],
+                    "text": link.get_text(strip=True)[:80]
+                })
+
+        result["concert_links"] = len(concert_links)
+        result["sample_links"] = concert_links[:3]
+        result["step"] = 5
+        result["success"] = True
+
+    except Exception as e:
+        result["error"] = str(e)
+        result["success"] = False
+        import traceback
+        result["traceback"] = traceback.format_exc()
+
+    return jsonify(result), 200
+
 @app.route('/stats', methods=['GET'])
 def stats():
     """Obtenir les statistiques"""
