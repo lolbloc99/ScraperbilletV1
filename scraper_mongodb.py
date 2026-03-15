@@ -179,6 +179,8 @@ class ConcertScraperMongoDB:
                 options.add_argument('--disable-dev-shm-usage')
                 options.add_argument('--disable-gpu')
 
+            options.add_argument('user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36')
+
             # Configuration ChromeDriver - webdriver-manager détecte la version
             try:
                 service = Service(ChromeDriverManager().install())
@@ -194,10 +196,27 @@ class ConcertScraperMongoDB:
             url = f"https://www.songkick.com/metro_areas/{market_config['country_code']}"
             logger.info(f"Accès à: {url}")
             driver.get(url)
-            time.sleep(self.config['scrape_settings']['delay_between_requests'])
 
+            # Attendre que la page se charge complètement (JavaScript)
+            time.sleep(5)
+            logger.info(f"Songkick {market}: Page chargée, recherche des éléments...")
+
+            # Essayer plusieurs sélecteurs
             events_elements = driver.find_elements(By.CLASS_NAME, "event-listing")
-            logger.info(f"Songkick {market}: {len(events_elements)} événements trouvés avec '.event-listing'")
+            if not events_elements:
+                logger.info(f"Songkick {market}: .event-listing not found, trying alternatives...")
+                # Essayer d'autres sélecteurs
+                events_elements = driver.find_elements(By.CSS_SELECTOR, "div[data-artist-name]")
+            if not events_elements:
+                events_elements = driver.find_elements(By.CSS_SELECTOR, "[data-event-id]")
+            if not events_elements:
+                events_elements = driver.find_elements(By.TAG_NAME, "article")
+
+            # Dernière tentative - regarder le contenu de la page
+            body_text = driver.find_element(By.TAG_NAME, "body").text
+            logger.info(f"Songkick {market}: Body text length: {len(body_text)}, Keywords found - concert: {'concert' in body_text.lower()}, event: {'event' in body_text.lower()}")
+
+            logger.info(f"Songkick {market}: {len(events_elements)} événements trouvés avec sélecteurs testés")
 
             for event_elem in events_elements:
                 try:
@@ -250,6 +269,8 @@ class ConcertScraperMongoDB:
                 options.add_argument('--disable-dev-shm-usage')
                 options.add_argument('--disable-gpu')
 
+            options.add_argument('user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36')
+
             # Configuration ChromeDriver - webdriver-manager détecte la version
             try:
                 service = Service(ChromeDriverManager().install())
@@ -265,10 +286,26 @@ class ConcertScraperMongoDB:
             url = market_config['viagogo_url']
             logger.info(f"Accès à: {url}")
             driver.get(url)
-            time.sleep(self.config['scrape_settings']['delay_between_requests'])
 
+            # Attendre que la page se charge complètement (JavaScript)
+            time.sleep(5)
+            logger.info(f"Viagogo {market}: Page chargée, recherche des éléments...")
+
+            # Essayer plusieurs sélecteurs
             events_elements = driver.find_elements(By.CLASS_NAME, "event-card")
-            logger.info(f"Viagogo {market}: {len(events_elements)} événements trouvés avec '.event-card'")
+            if not events_elements:
+                logger.info(f"Viagogo {market}: .event-card not found, trying alternatives...")
+                events_elements = driver.find_elements(By.CSS_SELECTOR, "[data-eventid]")
+            if not events_elements:
+                events_elements = driver.find_elements(By.CSS_SELECTOR, ".card")
+            if not events_elements:
+                events_elements = driver.find_elements(By.TAG_NAME, "article")
+
+            # Dernière tentative - regarder le contenu de la page
+            body_text = driver.find_element(By.TAG_NAME, "body").text
+            logger.info(f"Viagogo {market}: Body text length: {len(body_text)}, Keywords found - concert: {'concert' in body_text.lower()}, ticket: {'ticket' in body_text.lower()}")
+
+            logger.info(f"Viagogo {market}: {len(events_elements)} événements trouvés avec sélecteurs testés")
 
             for event_elem in events_elements:
                 try:
