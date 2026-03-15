@@ -84,8 +84,14 @@ def run_now():
 
     try:
         logger.info("🚀 Scraping déclenché manuellement")
+        logger.info(f"   MongoDB URI: {os.getenv('MONGODB_URI', 'NOT SET')[:50]}...")
+
         scraper = ConcertScraperMongoDB()
+        logger.info(f"✓ Scraper créé avec succès")
+
         result = scraper.execute()
+        logger.info(f"✓ Scraping exécuté: {result.get('total_events', '?')} événements")
+
         scraper.close()
 
         last_run = datetime.now().isoformat()
@@ -93,7 +99,9 @@ def run_now():
 
         return jsonify(result), 200
     except Exception as e:
-        logger.error(f"Erreur scraping: {e}")
+        logger.error(f"❌ Erreur scraping: {e}", exc_info=True)
+        import traceback
+        logger.error(f"Traceback: {traceback.format_exc()}")
         return jsonify({"error": str(e)}), 500
 
 
