@@ -81,28 +81,123 @@ def get_events():
 def test_http():
     """Test HTTP requests without Selenium"""
     import requests
+    from bs4 import BeautifulSoup
 
     result = {}
 
     try:
-        # Test Songkick
-        resp = requests.get("https://www.songkick.com/concerts", timeout=10)
+        # Test Songkick with proper headers
+        headers = {
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+            'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
+            'Accept-Language': 'en-US,en;q=0.5',
+            'Accept-Encoding': 'gzip, deflate',
+            'Connection': 'keep-alive',
+            'Referer': 'https://www.songkick.com/',
+            'Upgrade-Insecure-Requests': '1'
+        }
+
+        resp = requests.get("https://www.songkick.com/concerts", headers=headers, timeout=10)
         result['songkick_status'] = resp.status_code
         result['songkick_size'] = len(resp.text)
         result['songkick_has_concerts'] = "/concerts/" in resp.text
         result['songkick_links_count'] = resp.text.count("<a ")
+
+        # Parse and count concert links properly
+        soup = BeautifulSoup(resp.text, 'html.parser')
+        all_links = soup.find_all('a', href=True)
+        concert_links = [l for l in all_links if "/concerts/" in l.get('href', '') and "-" in l.get('href', '').split("/concerts/")[-1]]
+        result['songkick_concert_links'] = len(concert_links)
     except Exception as e:
         result['songkick_error'] = str(e)
+        import traceback
+        result['songkick_traceback'] = traceback.format_exc()
 
     try:
         # Test Viagogo
-        resp = requests.get("https://www.viagogo.com/", timeout=10)
+        headers = {
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+            'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
+            'Accept-Language': 'en-US,en;q=0.5',
+        }
+        resp = requests.get("https://www.viagogo.com/", headers=headers, timeout=10)
         result['viagogo_status'] = resp.status_code
         result['viagogo_size'] = len(resp.text)
         result['viagogo_has_concerts'] = "/Concert-Tickets/" in resp.text
         result['viagogo_links_count'] = resp.text.count("<a ")
     except Exception as e:
         result['viagogo_error'] = str(e)
+        import traceback
+        result['viagogo_traceback'] = traceback.format_exc()
+
+    return jsonify(result), 200
+
+
+@app.route('/test-scraper', methods=['GET'])
+def test_scraper():
+    """Test the actual scraper directly"""
+    import json as json_module
+
+    result = {
+        "songkick_test": {},
+        "viagogo_test": {},
+        "full_scrape": {}
+    }
+
+    try:
+        scraper = ConcertScraperMongoDB()
+        logger.info("✓ Scraper created successfully")
+
+        # Test Songkick
+        try:
+            events = scraper.scrape_songkick("UK", scraper.config['markets']['UK'])
+            result['songkick_test']['events_found'] = len(events)
+            result['songkick_test']['success'] = True
+            if events:
+                result['songkick_test']['sample'] = events[0]
+            logger.info(f"✓ Songkick test: {len(events)} events found")
+        except Exception as e:
+            result['songkick_test']['success'] = False
+            result['songkick_test']['error'] = str(e)
+            import traceback
+            result['songkick_test']['traceback'] = traceback.format_exc()
+            logger.error(f"✗ Songkick test failed: {e}")
+
+        # Test Viagogo
+        try:
+            events = scraper.scrape_viagogo("UK", scraper.config['markets']['UK'])
+            result['viagogo_test']['events_found'] = len(events)
+            result['viagogo_test']['success'] = True
+            if events:
+                result['viagogo_test']['sample'] = events[0]
+            logger.info(f"✓ Viagogo test: {len(events)} events found")
+        except Exception as e:
+            result['viagogo_test']['success'] = False
+            result['viagogo_test']['error'] = str(e)
+            import traceback
+            result['viagogo_test']['traceback'] = traceback.format_exc()
+            logger.error(f"✗ Viagogo test failed: {e}")
+
+        # Full scrape
+        try:
+            all_events = scraper.run_scrape_all_markets()
+            result['full_scrape']['total_events'] = len(all_events)
+            result['full_scrape']['success'] = True
+            logger.info(f"✓ Full scrape: {len(all_events)} events found")
+        except Exception as e:
+            result['full_scrape']['success'] = False
+            result['full_scrape']['error'] = str(e)
+            import traceback
+            result['full_scrape']['traceback'] = traceback.format_exc()
+            logger.error(f"✗ Full scrape failed: {e}")
+
+        scraper.close()
+
+    except Exception as e:
+        result['error'] = str(e)
+        import traceback
+        result['traceback'] = traceback.format_exc()
+        logger.error(f"✗ Scraper test failed: {e}")
 
     return jsonify(result), 200
 
