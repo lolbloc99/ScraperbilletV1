@@ -9,6 +9,7 @@ from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.chrome.service import Service
 from webdriver_manager.chrome import ChromeDriverManager
+from webdriver_manager.core.driver_cache import DriverCacheManager
 import time
 from datetime import datetime, timedelta
 from typing import List, Dict
@@ -178,8 +179,8 @@ class ConcertScraperMongoDB:
                 options.add_argument('--disable-dev-shm-usage')
                 options.add_argument('--disable-gpu')
 
-            # Configuration ChromeDriver avec webdriver-manager
-            service = Service(ChromeDriverManager().install())
+            # Configuration ChromeDriver avec webdriver-manager (Chrome officiel)
+            service = Service(ChromeDriverManager(driver_version="stable").install())
             driver = webdriver.Chrome(service=service, options=options)
 
             url = f"https://www.songkick.com/metro_areas/{market_config['country_code']}"
@@ -236,8 +237,8 @@ class ConcertScraperMongoDB:
                 options.add_argument('--disable-dev-shm-usage')
                 options.add_argument('--disable-gpu')
 
-            # Configuration ChromeDriver avec webdriver-manager
-            service = Service(ChromeDriverManager().install())
+            # Configuration ChromeDriver avec webdriver-manager (Chrome officiel)
+            service = Service(ChromeDriverManager(driver_version="stable").install())
             driver = webdriver.Chrome(service=service, options=options)
 
             url = market_config['viagogo_url']
