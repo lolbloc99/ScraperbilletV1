@@ -181,25 +181,38 @@ class ConcertScraperMongoDB:
 
             options.add_argument('user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36')
 
-            # Configuration ChromeDriver - webdriver-manager détecte la version
+            # Configuration ChromeDriver
+            driver = None
             try:
+                # Essayer avec webdriver-manager
                 service = Service(ChromeDriverManager().install())
-            except Exception as e:
-                logger.warning(f"WebDriver manager failed, trying without service: {e}")
-                service = None
-
-            if service:
                 driver = webdriver.Chrome(service=service, options=options)
-            else:
-                driver = webdriver.Chrome(options=options)
+                logger.info(f"✓ Chrome initialized with webdriver-manager")
+            except Exception as e:
+                logger.warning(f"WebDriver manager failed: {e}")
+                try:
+                    # Essayer sans service (utilise Chrome depuis le PATH ou env var)
+                    driver = webdriver.Chrome(options=options)
+                    logger.info(f"✓ Chrome initialized without service (using PATH)")
+                except Exception as e2:
+                    logger.error(f"Failed to initialize Chrome at all: {e2}")
+                    raise
+
+            if not driver:
+                raise Exception("Failed to initialize Chrome WebDriver")
 
             url = market_config['songkick_url']
             logger.info(f"Accès à: {url}")
             driver.get(url)
 
             # Attendre que la page se charge complètement (JavaScript)
-            time.sleep(5)
-            logger.info(f"Songkick {market}: Page chargée, recherche des éléments...")
+            wait_time = 8
+            logger.info(f"Songkick {market}: Attente de {wait_time}s pour le chargement JS...")
+            time.sleep(wait_time)
+
+            # Vérifier le chargement
+            page_size = len(driver.page_source)
+            logger.info(f"Songkick {market}: Page chargée ({page_size} chars), recherche des éléments...")
 
             # Chercher les liens de concerts (stratégie robuste)
             # Songkick utilise des URLs comme /concerts/ID-NAME
@@ -214,7 +227,7 @@ class ConcertScraperMongoDB:
             logger.info(f"Songkick {market}: {len(events_elements)} liens de concerts trouvés avec pattern /concerts/ID-NAME")
 
             parsed_count = 0
-            for link_elem in events_elements:
+            for link_idx, link_elem in enumerate(events_elements):
                 try:
                     # event_elem est maintenant un lien direct
                     title = link_elem.text.strip() if link_elem.text else "Unknown"
@@ -241,9 +254,14 @@ class ConcertScraperMongoDB:
                         events.append(event)
                         parsed_count += 1
                         logger.info(f"✓ {market} Songkick: {title}")
+                    else:
+                        # Log why this link was skipped
+                        if link_idx < 3:  # Only log first few
+                            logger.warning(f"Skipped link [{link_idx}]: title='{title}' (len={len(title)}) url={url[:100]}")
 
                 except Exception as e:
-                    logger.debug(f"Erreur parsing lien Songkick: {e}")
+                    if link_idx < 3:  # Only log first few errors
+                        logger.warning(f"Erreur parsing lien Songkick [{link_idx}]: {e}")
                     continue
 
             logger.info(f"Songkick {market}: Traité {len(events_elements)} liens, {parsed_count} événements valides trouvés")
@@ -270,25 +288,38 @@ class ConcertScraperMongoDB:
 
             options.add_argument('user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36')
 
-            # Configuration ChromeDriver - webdriver-manager détecte la version
+            # Configuration ChromeDriver
+            driver = None
             try:
+                # Essayer avec webdriver-manager
                 service = Service(ChromeDriverManager().install())
-            except Exception as e:
-                logger.warning(f"WebDriver manager failed, trying without service: {e}")
-                service = None
-
-            if service:
                 driver = webdriver.Chrome(service=service, options=options)
-            else:
-                driver = webdriver.Chrome(options=options)
+                logger.info(f"✓ Chrome initialized with webdriver-manager")
+            except Exception as e:
+                logger.warning(f"WebDriver manager failed: {e}")
+                try:
+                    # Essayer sans service (utilise Chrome depuis le PATH ou env var)
+                    driver = webdriver.Chrome(options=options)
+                    logger.info(f"✓ Chrome initialized without service (using PATH)")
+                except Exception as e2:
+                    logger.error(f"Failed to initialize Chrome at all: {e2}")
+                    raise
+
+            if not driver:
+                raise Exception("Failed to initialize Chrome WebDriver")
 
             url = market_config['viagogo_url']
             logger.info(f"Accès à: {url}")
             driver.get(url)
 
             # Attendre que la page se charge complètement (JavaScript)
-            time.sleep(5)
-            logger.info(f"Viagogo {market}: Page chargée, recherche des éléments...")
+            wait_time = 8
+            logger.info(f"Viagogo {market}: Attente de {wait_time}s pour le chargement JS...")
+            time.sleep(wait_time)
+
+            # Vérifier le chargement
+            page_size = len(driver.page_source)
+            logger.info(f"Viagogo {market}: Page chargée ({page_size} chars), recherche des éléments...")
 
             # Chercher les liens de concerts (stratégie robuste)
             # Viagogo utilise des URLs comme /Concert-Tickets/Genre/Artist-Tickets
@@ -303,7 +334,7 @@ class ConcertScraperMongoDB:
             logger.info(f"Viagogo {market}: {len(events_elements)} liens de concerts trouvés avec pattern /Concert-Tickets/")
 
             parsed_count = 0
-            for link_elem in events_elements:
+            for link_idx, link_elem in enumerate(events_elements):
                 try:
                     url = link_elem.get_attribute("href") or ""
 
@@ -340,9 +371,14 @@ class ConcertScraperMongoDB:
                         events.append(event)
                         parsed_count += 1
                         logger.info(f"✓ {market} Viagogo: {title}")
+                    else:
+                        # Log why this link was skipped
+                        if link_idx < 3:  # Only log first few
+                            logger.warning(f"Skipped link [{link_idx}]: title='{title}' (len={len(title)}) url={url[:100]}")
 
                 except Exception as e:
-                    logger.debug(f"Erreur parsing lien Viagogo: {e}")
+                    if link_idx < 3:  # Only log first few errors
+                        logger.warning(f"Erreur parsing lien Viagogo [{link_idx}]: {e}")
                     continue
 
             logger.info(f"Viagogo {market}: Traité {len(events_elements)} liens, {parsed_count} événements valides trouvés")
