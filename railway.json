@@ -14,5 +14,11 @@
       "retries": 3,
       "startPeriod": 5
     }
-  }
+  },
+  "services": [
+    {
+      "name": "MongoDB",
+      "source": "mongodb"
+    }
+  ]
 }
