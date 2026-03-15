@@ -193,7 +193,7 @@ class ConcertScraperMongoDB:
             else:
                 driver = webdriver.Chrome(options=options)
 
-            url = f"https://www.songkick.com/metro_areas/{market_config['country_code']}"
+            url = market_config['songkick_url']
             logger.info(f"Accès à: {url}")
             driver.get(url)
 
@@ -202,15 +202,14 @@ class ConcertScraperMongoDB:
             logger.info(f"Songkick {market}: Page chargée, recherche des éléments...")
 
             # Essayer plusieurs sélecteurs
-            events_elements = driver.find_elements(By.CLASS_NAME, "event-listing")
+            events_elements = driver.find_elements(By.CLASS_NAME, "event")
             if not events_elements:
-                logger.info(f"Songkick {market}: .event-listing not found, trying alternatives...")
-                # Essayer d'autres sélecteurs
+                logger.info(f"Songkick {market}: .event not found, trying alternatives...")
+                events_elements = driver.find_elements(By.TAG_NAME, "li")
+            if not events_elements:
                 events_elements = driver.find_elements(By.CSS_SELECTOR, "div[data-artist-name]")
             if not events_elements:
                 events_elements = driver.find_elements(By.CSS_SELECTOR, "[data-event-id]")
-            if not events_elements:
-                events_elements = driver.find_elements(By.TAG_NAME, "article")
 
             # Dernière tentative - regarder le contenu de la page
             body_text = driver.find_element(By.TAG_NAME, "body").text
@@ -292,14 +291,14 @@ class ConcertScraperMongoDB:
             logger.info(f"Viagogo {market}: Page chargée, recherche des éléments...")
 
             # Essayer plusieurs sélecteurs
-            events_elements = driver.find_elements(By.CLASS_NAME, "event-card")
+            events_elements = driver.find_elements(By.TAG_NAME, "li")
             if not events_elements:
-                logger.info(f"Viagogo {market}: .event-card not found, trying alternatives...")
+                logger.info(f"Viagogo {market}: li not found, trying alternatives...")
+                events_elements = driver.find_elements(By.CLASS_NAME, "event-card")
+            if not events_elements:
                 events_elements = driver.find_elements(By.CSS_SELECTOR, "[data-eventid]")
             if not events_elements:
                 events_elements = driver.find_elements(By.CSS_SELECTOR, ".card")
-            if not events_elements:
-                events_elements = driver.find_elements(By.TAG_NAME, "article")
 
             # Dernière tentative - regarder le contenu de la page
             body_text = driver.find_element(By.TAG_NAME, "body").text

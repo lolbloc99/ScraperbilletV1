@@ -3,37 +3,37 @@
     "UK": {
       "country_code": "GB",
       "songkick_url": "https://www.songkick.com/concerts",
-      "viagogo_url": "https://www.viagogo.com/concerts",
+      "viagogo_url": "https://www.viagogo.com/",
       "languages": ["en"]
     },
     "France": {
       "country_code": "FR",
       "songkick_url": "https://www.songkick.com/concerts",
-      "viagogo_url": "https://www.viagogo.fr/concerts",
+      "viagogo_url": "https://www.viagogo.fr/",
       "languages": ["fr"]
     },
     "Danemark": {
       "country_code": "DK",
       "songkick_url": "https://www.songkick.com/concerts",
-      "viagogo_url": "https://www.viagogo.com/concerts",
+      "viagogo_url": "https://www.viagogo.com/",
       "languages": ["da"]
     },
     "Suède": {
       "country_code": "SE",
       "songkick_url": "https://www.songkick.com/concerts",
-      "viagogo_url": "https://www.viagogo.com/concerts",
+      "viagogo_url": "https://www.viagogo.com/",
       "languages": ["sv"]
     },
     "Italie": {
       "country_code": "IT",
       "songkick_url": "https://www.songkick.com/concerts",
-      "viagogo_url": "https://www.viagogo.it/concerti",
+      "viagogo_url": "https://www.viagogo.it/",
       "languages": ["it"]
     },
     "Espagne": {
       "country_code": "ES",
       "songkick_url": "https://www.songkick.com/concerts",
-      "viagogo_url": "https://www.viagogo.es/entradas-conciertos",
+      "viagogo_url": "https://www.viagogo.es/",
       "languages": ["es"]
     }
   },
