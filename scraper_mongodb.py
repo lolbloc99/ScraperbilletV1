@@ -192,10 +192,12 @@ class ConcertScraperMongoDB:
                 driver = webdriver.Chrome(options=options)
 
             url = f"https://www.songkick.com/metro_areas/{market_config['country_code']}"
+            logger.info(f"Accès à: {url}")
             driver.get(url)
             time.sleep(self.config['scrape_settings']['delay_between_requests'])
 
             events_elements = driver.find_elements(By.CLASS_NAME, "event-listing")
+            logger.info(f"Songkick {market}: {len(events_elements)} événements trouvés avec '.event-listing'")
 
             for event_elem in events_elements:
                 try:
@@ -217,9 +219,12 @@ class ConcertScraperMongoDB:
                         "scraped_at": datetime.now().isoformat()
                     }
 
+                    # Garder TOUS les événements, pas seulement sold out
+                    events.append(event)
                     if is_sold_out:
-                        events.append(event)
                         logger.info(f"✓ {market} Songkick: {title} - SOLD OUT")
+                    else:
+                        logger.info(f"✓ {market} Songkick: {title} - Disponible")
 
                 except Exception as e:
                     logger.debug(f"Erreur parsing événement Songkick: {e}")
@@ -258,10 +263,12 @@ class ConcertScraperMongoDB:
                 driver = webdriver.Chrome(options=options)
 
             url = market_config['viagogo_url']
+            logger.info(f"Accès à: {url}")
             driver.get(url)
             time.sleep(self.config['scrape_settings']['delay_between_requests'])
 
             events_elements = driver.find_elements(By.CLASS_NAME, "event-card")
+            logger.info(f"Viagogo {market}: {len(events_elements)} événements trouvés avec '.event-card'")
 
             for event_elem in events_elements:
                 try:
